@@ -360,8 +360,8 @@ HRESULT CALLBACK OnCreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_
     //V_RETURN( g_pEffect->SetTexture( "g_MeshTexture", g_pMeshTexture ) );
 
     // Setup the camera's view parameters
-    D3DXVECTOR3 vecEye( 0.0f, 0.0f, -15.0f );
-    D3DXVECTOR3 vecAt ( 0.0f, 0.0f, -0.0f );
+    D3DXVECTOR3 vecEye( 0.0f, 0.0f, -10.0f );
+    D3DXVECTOR3 vecAt ( 0.0f, 0.0f, 1.0f );
     g_Camera.SetViewParams( &vecEye, &vecAt );
     g_Camera.SetRadius( fObjectRadius * 3.0f, fObjectRadius * 0.5f, fObjectRadius * 10.0f );
 
@@ -464,6 +464,9 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
 
 		g_Model.SetWorldMatrix(&mWorld);
 		g_Model.SetViewMatrix(&mView);
+		const D3DXVECTOR3 *pViewFrom = g_Camera.GetEyePt();
+		const D3DXVECTOR3 *pViewTo = g_Camera.GetLookAtPt();
+		g_Model.SetViewParams(pViewFrom, pViewTo);
 		g_Model.SetProjectMatrix(&mProj);
 		g_Model.RenderFullScene(pd3dDevice, g_pEffect);
 
@@ -624,6 +627,8 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 					g_pEffect = g_Model.CreateDefaultEffect(pd3dDevice);
 					assert(g_pEffect);
 					g_Model.PostLoad(pd3dDevice, g_pEffect);
+					float fObjectRadius = g_Model.GetRadius();
+					g_Camera.SetRadius(fObjectRadius * 3.0f, fObjectRadius * 0.5f, fObjectRadius * 10.0f);
 				}
 			}
 		}

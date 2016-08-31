@@ -30,6 +30,11 @@ void Model::SetViewMatrix(const D3DXMATRIX* mat)
 	m_pModelImpl->SetViewMatrix(mat);
 }
 
+void Model::SetViewParams(const D3DXVECTOR3 *pViewEyePos, const D3DXVECTOR3 *pViewLookAt)
+{
+	m_pModelImpl->SetViewParams(pViewEyePos, pViewLookAt);
+}
+
 void Model::SetProjectMatrix(const D3DXMATRIX* mat)
 {
 	m_pModelImpl->SetProjectMatrix(mat);
@@ -49,6 +54,11 @@ bool Model::Load(const char * path)
 bool Model::PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect)
 {
 	return m_pModelImpl->PostLoad(g_piDevice, g_piDefaultEffect);
+}
+
+float Model::GetRadius()
+{
+	return m_pModelImpl->GetRadius();
 }
 
 bool Model::Unload(void)

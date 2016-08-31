@@ -56,7 +56,132 @@ float g_fLightColor = 1.0f;
 
 
 
+void CalculateBoundingSphereAverage(aiVector3D* vertices, unsigned int vertex_num, aiVector3D* pvOutCenter, float* pvOutRadius)
+{
+	//Compute the center point  
+	aiVector3D total;
+	total.x = 0;
+	total.y = 0;
+	total.z = 0;
+	for (int i = 0; i < vertex_num; i++)
+	{
+		total.x += vertices[i].x;
+		total.y += vertices[i].y;
+		total.z += vertices[i].z;
+	}// end for  
 
+	total.x /= vertex_num;
+	total.y /= vertex_num;
+	total.z /= vertex_num;
+	*pvOutCenter = total;
+
+	//Compute the radious  
+	float r = 0;
+	for (int i = 0; i < vertex_num; i++)
+	{
+		aiVector3D temp;
+		//Vec3Sub(temp, total, vertices[i]);
+		temp = total - vertices[i];
+		float length = 0;
+		//length = Vec3Length(length, temp);
+		length = temp.Length();
+		if (length > r)
+			r = length;
+	}// end for  
+
+	*pvOutRadius = r;
+}
+
+void CalculateBoundingSphereRitter(aiVector3D* vertices, unsigned int vertex_num, aiVector3D* pvOutCenter, float* pvOutRadius)
+{
+	unsigned int maxX = 0, maxY = 0, maxZ = 0, minX = -1, minY = -1, minZ = -1;
+
+	//Find the max and min along the x-axie, y-axie, z-axie  
+	for (int i = 0; i < vertex_num; i++)
+	{
+		if (vertices[i].x > maxX) maxX = i;
+		if (vertices[i].x < minX) minX = i;
+		if (vertices[i].y > maxY) maxY = i;
+		if (vertices[i].y < minY) minY = i;
+		if (vertices[i].z > maxZ) maxZ = i;
+		if (vertices[i].z < minZ) minZ = i;
+	}// end for  
+
+	float x = 0;
+	aiVector3D sub1, sub2;
+	sub1.x = vertices[maxX].x; sub1.y = vertices[maxX].y; sub1.z = vertices[maxX].z;
+	sub2.x = vertices[minX].x; sub2.y = vertices[minX].y; sub2.z = vertices[minX].z;
+	//Vec3Sub(sub1, sub1, sub2);
+	sub1 -= sub2;
+	//Vec3Dot(x, sub1, sub1);
+	x = sub1 * sub1;
+
+	float y = 0;
+	sub1.x = vertices[maxY].x; sub1.y = vertices[maxY].y; sub1.z = vertices[maxY].z;
+	sub2.x = vertices[minY].x; sub2.y = vertices[minY].y; sub2.z = vertices[minY].z;
+	//Vec3Sub(sub1, sub1, sub2);
+	sub1 -= sub2;
+	//Vec3Dot(y, sub1, sub1);
+	y = sub1 * sub1;
+
+	float z = 0;
+	sub1.x = vertices[maxZ].x; sub1.y = vertices[maxZ].y; sub1.z = vertices[maxZ].z;
+	sub2.x = vertices[minZ].x; sub2.y = vertices[minZ].y; sub2.z = vertices[minZ].z;
+	//Vec3Sub(sub1, sub1, sub2);
+	sub1 -= sub2;
+	//Vec3Dot(z, sub1, sub1);
+	z = sub1 * sub1;
+
+	float dia = 0;
+	int max = maxX, min = minX;
+	if (z > x && z > y)
+	{
+		max = maxZ;
+		min = minZ;
+		dia = z;
+	}
+	else if (y > x && y > z)
+	{
+		max = maxY;
+		min = minY;
+		dia = y;
+	}
+
+	//Compute the center point  
+	aiVector3D center;
+	center.x = 0.5 * (vertices[max].x + vertices[min].x);
+	center.y = 0.5 * (vertices[max].y + vertices[min].y);
+	center.z = 0.5 * (vertices[max].z + vertices[min].z);
+
+	//Compute the radious  
+	float radious = 0.5 * sqrt(dia);
+
+	//Fix it  
+	for (int i = 0; i < vertex_num; i++)
+	{
+		aiVector3D d;
+		//Vec3Sub(d, vertices[i], center);
+		d = vertices[i] - center;
+		float dist2 = 0;
+		//Vec3Dot(dist2, d, d);
+		dist2 = d * d;
+
+		if (dist2 > radious * radious)
+		{
+			float dist = sqrt(dist2);
+			float newRadious = (dist + radious) * 0.5;
+			float k = (newRadious - radious) / dist;
+			radious = newRadious;
+			aiVector3D temp;
+			//Vec3Mul(temp, d, k);
+			temp = d * k;
+			//Vec3Add(center, center, temp);
+			center += temp;
+		}// end if  
+	}// end for vertex_num  
+	*pvOutRadius = radious;
+	*pvOutCenter = center;
+}
 
 //-------------------------------------------------------------------------------
 // Calculate the boundaries of a given node and all of its children
@@ -100,12 +225,13 @@ int CalculateBounds(AssetHelper* g_pcAsset, aiNode* piNode, aiVector3D* p_avOut,
 	}
 	return 1;
 }
+
 //-------------------------------------------------------------------------------
 // Scale the asset that it fits perfectly into the viewer window
 // The function calculates the boundaries of the mesh and modifies the
 // global world transformation matrix according to the aset AABB
 //-------------------------------------------------------------------------------
-int ScaleAsset(AssetHelper* g_pcAsset, aiMatrix4x4* pOut)
+int ScaleAsset(AssetHelper* g_pcAsset, aiMatrix4x4* pOut, float* pOutRadius)
 {
 	aiVector3D aiVecs[2] = { aiVector3D(1e10f, 1e10f, 1e10f),
 		aiVector3D(-1e10f, -1e10f, -1e10f) };
@@ -115,6 +241,9 @@ int ScaleAsset(AssetHelper* g_pcAsset, aiMatrix4x4* pOut)
 		aiMatrix4x4 m;
 		CalculateBounds(g_pcAsset, g_pcAsset->pcScene->mRootNode, aiVecs, m);
 	}
+
+	aiVector3D center;
+	CalculateBoundingSphereRitter(aiVecs, 2, &center, pOutRadius);
 
 	aiVector3D vDelta = aiVecs[1] - aiVecs[0];
 	aiVector3D vHalf = aiVecs[0] + (vDelta / 2.0f);
@@ -145,6 +274,7 @@ ModelImpl::ModelImpl()
 	: g_pcAsset(NULL)
 	, m_pMaterialMgr(NULL)
 	, m_pMeshRender(NULL)
+	, m_radius(0.0f)
 {
 	struct aiLogStream stream;
 	/* get a handle to the predefined STDOUT log stream and attach
@@ -231,7 +361,7 @@ bool ModelImpl::PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultE
 	g_pcAsset->iNormalSet = AssimpView::AssetHelper::ORIGINAL;
 
 	// scale the asset vertices to fit into the viewer window
-	AssimpView::ScaleAsset(g_pcAsset, &g_mWorld);
+	AssimpView::ScaleAsset(g_pcAsset, &g_mWorld, &m_radius);
 
 	// reset the camera view to the default position
 	g_sCamera.vPos = aiVector3D(0.0f, 0.0f, -10.0f);
@@ -740,6 +870,16 @@ void ModelImpl::SetViewMatrix(const D3DXMATRIX* mat)
 	mView.d4 = mat->_44;
 }
 
+void ModelImpl::SetViewParams(const D3DXVECTOR3 *pViewEyePos, const D3DXVECTOR3 *pViewLookAt)
+{
+	g_sCamera.vPos.x = pViewEyePos->x;
+	g_sCamera.vPos.y = pViewEyePos->y;
+	g_sCamera.vPos.z = pViewEyePos->z;
+	g_sCamera.vLookAt.x = pViewLookAt->x;
+	g_sCamera.vLookAt.y = pViewLookAt->y;
+	g_sCamera.vLookAt.z = pViewLookAt->z;
+}
+
 void ModelImpl::SetProjectMatrix(const D3DXMATRIX* mat)
 {
 	mProjection.a1 = mat->_11;
@@ -806,6 +946,11 @@ ID3DXEffect * ModelImpl::CreateDefaultEffect(IDirect3DDevice9 * pd3dDevice)
 
 int ModelImpl::GetProjectionMatrix(aiMatrix4x4& p_mOut)
 {
+	p_mOut = mProjection;
+	return 1;
+
+	/////////////////////////////////////////////////////
+
 	const float fFarPlane = 100.0f;
 	const float fNearPlane = 0.1f;
 	const float fFOV = (float)(45.0 * 0.0174532925);
@@ -829,6 +974,11 @@ int ModelImpl::GetProjectionMatrix(aiMatrix4x4& p_mOut)
 
 aiVector3D ModelImpl::GetCameraMatrix(aiMatrix4x4& p_mOut)
 {
+	//p_mOut = mView;
+	//return g_sCamera.vPos;
+
+	//////////////////////////////////////////////////////////
+
 	D3DXMATRIX view;
 	D3DXMatrixIdentity(&view);
 

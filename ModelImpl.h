@@ -23,11 +23,14 @@ class ModelImpl
 	AssimpView::CMaterialManager* m_pMaterialMgr;
 	AssimpView::CMeshRenderer* m_pMeshRender;
 
+	aiVector3D m_aabb[2];
+	float m_radius;
+
 	//solution 1
 	aiMatrix4x4 g_mWorld;
 	aiMatrix4x4 mView;
 	aiMatrix4x4 mProjection;
-
+	//TODO: can be removed
 	RECT m_WindowRect;
 
 	//solution 2
@@ -41,6 +44,8 @@ public:
 
 	bool Load(const char* path);
 	bool PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect);
+	//void GetAABB();
+	float GetRadius() { return m_radius; }
 	bool Unload(void);
 
 	ID3DXEffect* CreateDefaultEffect(IDirect3DDevice9* pd3dDevice);
@@ -50,6 +55,7 @@ public:
 	void ResetView();
 	void SetWorldMatrix(const D3DXMATRIX* mat);
 	void SetViewMatrix(const D3DXMATRIX* mat);
+	void SetViewParams(const D3DXVECTOR3 *pViewEyePos, const D3DXVECTOR3 *pViewLookAt);
 	void SetProjectMatrix(const D3DXMATRIX* mat);
 	void SetWindowRect(const RECT* pRect);
 
