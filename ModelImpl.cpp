@@ -243,7 +243,12 @@ int ScaleAsset(AssetHelper* g_pcAsset, aiMatrix4x4* pOut, float* pOutRadius)
 	}
 
 	aiVector3D center;
-	CalculateBoundingSphereRitter(aiVecs, 2, &center, pOutRadius);
+	float radius;
+#ifdef RELEASE_VERSION
+	CalculateBoundingSphereRitter(aiVecs, 2, &center, &radius);
+#else
+	CalculateBoundingSphereAverage(aiVecs, 2, &center, &radius);
+#endif	//RELEASE_VERSION
 
 	aiVector3D vDelta = aiVecs[1] - aiVecs[0];
 	aiVector3D vHalf = aiVecs[0] + (vDelta / 2.0f);
@@ -259,6 +264,8 @@ int ScaleAsset(AssetHelper* g_pcAsset, aiMatrix4x4* pOut, float* pOutRadius)
 			0.0f, fScale, 0.0f, 0.0f,
 			0.0f, 0.0f, fScale, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f);
+	
+	*pOutRadius = radius * fScale;
 	return 1;
 }
 
@@ -897,7 +904,7 @@ void ModelImpl::SetViewMatrix(const D3DXMATRIX* mat)
 
 void ModelImpl::SetViewParams(const D3DXVECTOR3 *pViewEyePos, const D3DXVECTOR3 *pViewLookAt)
 {
-#ifndef RELEASE_VERSION
+#ifdef RELEASE_VERSION
 #else
 	g_sCamera.vPos.x = pViewEyePos->x;
 	g_sCamera.vPos.y = pViewEyePos->y;

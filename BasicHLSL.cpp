@@ -630,7 +630,7 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 					assert(g_pEffect);
 					g_Model.PostLoad(pd3dDevice, g_pEffect);
 					float fObjectRadius = g_Model.GetModelWorldRadius();
-					g_Camera.SetRadius(fObjectRadius * 3.0f, fObjectRadius * 0.5f, fObjectRadius * 10.0f);
+					g_Camera.SetRadius(fObjectRadius * 2.0f, fObjectRadius * 0.01f, fObjectRadius * 100.0f);
 				}
 			}
 		}
