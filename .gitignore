@@ -55,3 +55,6 @@ ipch
 .log
 .vs
 .db
+assimp_log.txt
+BasicHLSL_2010.VC.db
+BasicHLSL_2010.VC.VC.opendb

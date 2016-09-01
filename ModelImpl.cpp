@@ -708,6 +708,30 @@ int ModelImpl::DeleteAssetData(bool bNoMaterials)
 	return 1;
 }
 
+bool ModelImpl::GetModelWorldMatrix(D3DXMATRIX* pOut)
+{
+	pOut->_11 = g_mWorld.a1;
+	pOut->_12 = g_mWorld.a2;
+	pOut->_13 = g_mWorld.a3;
+	pOut->_14 = g_mWorld.a4;
+
+	pOut->_21 = g_mWorld.b1;
+	pOut->_22 = g_mWorld.b2;
+	pOut->_23 = g_mWorld.b3;
+	pOut->_24 = g_mWorld.b4;
+
+	pOut->_31 = g_mWorld.c1;
+	pOut->_32 = g_mWorld.c2;
+	pOut->_33 = g_mWorld.c3;
+	pOut->_34 = g_mWorld.c4;
+
+	pOut->_41 = g_mWorld.d1;
+	pOut->_42 = g_mWorld.d2;
+	pOut->_43 = g_mWorld.d3;
+	pOut->_44 = g_mWorld.d4;
+	return true;
+}
+
 //-------------------------------------------------------------------------------
 // Delete the loaded asset
 // The function does nothing is no asset is loaded
@@ -778,7 +802,14 @@ int ModelImpl::RenderFullScene(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDe
 	//	D3DCOLOR_ARGB(0xff, 100, 100, 100), 1.0f, 0);
 	g_piDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
 
-	aiMatrix4x4 m = g_mWorld;
+	aiMatrix4x4 m;
+#ifndef RELEASE_VERSION
+	m = g_mWorld;
+#else
+	m = g_mWorld * g_mWorldRotate;
+	//TODO: should be
+	//m = g_mWorldRotate;
+#endif //RELEASE_VERSION
 	// draw all opaque objects in the scene
 	if (NULL != g_pcAsset && NULL != g_pcAsset->pcScene->mRootNode)
 	{
@@ -813,7 +844,7 @@ void ModelImpl::ResetView()
 	g_sCamera.vLookAt = aiVector3D(0.0f, 0.0f, 1.0f);
 	g_sCamera.vUp = aiVector3D(0.0f, 1.0f, 0.0f);
 	g_sCamera.vRight = aiVector3D(0.0f, 1.0f, 0.0f);
-	//g_mWorldRotate = aiMatrix4x4();
+	g_mWorldRotate = aiMatrix4x4();
 	g_mWorld = aiMatrix4x4();
 	mView = aiMatrix4x4();
 	mProjection = aiMatrix4x4();
@@ -824,27 +855,25 @@ void ModelImpl::ResetView()
 
 void ModelImpl::SetWorldMatrix(const D3DXMATRIX* mat)
 {
-	return;		//TODO: get world matrix from DXUT
+	g_mWorldRotate.a1 = mat->_11;
+	g_mWorldRotate.a2 = mat->_12;
+	g_mWorldRotate.a3 = mat->_13;
+	g_mWorldRotate.a4 = mat->_14;
 
-	g_mWorld.a1 = mat->_11;
-	g_mWorld.a2 = mat->_12;
-	g_mWorld.a3 = mat->_13;
-	g_mWorld.a4 = mat->_14;
+	g_mWorldRotate.b1 = mat->_21;
+	g_mWorldRotate.b2 = mat->_22;
+	g_mWorldRotate.b3 = mat->_23;
+	g_mWorldRotate.b4 = mat->_24;
 
-	g_mWorld.b1 = mat->_21;
-	g_mWorld.b2 = mat->_22;
-	g_mWorld.b3 = mat->_23;
-	g_mWorld.b4 = mat->_24;
+	g_mWorldRotate.c1 = mat->_31;
+	g_mWorldRotate.c2 = mat->_32;
+	g_mWorldRotate.c3 = mat->_33;
+	g_mWorldRotate.c4 = mat->_34;
 
-	g_mWorld.c1 = mat->_31;
-	g_mWorld.c2 = mat->_32;
-	g_mWorld.c3 = mat->_33;
-	g_mWorld.c4 = mat->_34;
-
-	g_mWorld.d1 = mat->_41;
-	g_mWorld.d2 = mat->_42;
-	g_mWorld.d3 = mat->_43;
-	g_mWorld.d4 = mat->_44;
+	g_mWorldRotate.d1 = mat->_41;
+	g_mWorldRotate.d2 = mat->_42;
+	g_mWorldRotate.d3 = mat->_43;
+	g_mWorldRotate.d4 = mat->_44;
 }
 
 void ModelImpl::SetViewMatrix(const D3DXMATRIX* mat)
@@ -872,12 +901,15 @@ void ModelImpl::SetViewMatrix(const D3DXMATRIX* mat)
 
 void ModelImpl::SetViewParams(const D3DXVECTOR3 *pViewEyePos, const D3DXVECTOR3 *pViewLookAt)
 {
+#ifndef RELEASE_VERSION
+#else
 	g_sCamera.vPos.x = pViewEyePos->x;
 	g_sCamera.vPos.y = pViewEyePos->y;
 	g_sCamera.vPos.z = pViewEyePos->z;
 	g_sCamera.vLookAt.x = pViewLookAt->x;
 	g_sCamera.vLookAt.y = pViewLookAt->y;
 	g_sCamera.vLookAt.z = pViewLookAt->z;
+#endif //RELEASE_VERSION
 }
 
 void ModelImpl::SetProjectMatrix(const D3DXMATRIX* mat)
@@ -948,37 +980,10 @@ int ModelImpl::GetProjectionMatrix(aiMatrix4x4& p_mOut)
 {
 	p_mOut = mProjection;
 	return 1;
-
-	/////////////////////////////////////////////////////
-
-	const float fFarPlane = 100.0f;
-	const float fNearPlane = 0.1f;
-	const float fFOV = (float)(45.0 * 0.0174532925);
-
-	const float s = 1.0f / tanf(fFOV * 0.5f);
-	const float Q = fFarPlane / (fFarPlane - fNearPlane);
-
-	RECT sRect = m_WindowRect;
-	//GetWindowRect(GetDlgItem(g_hDlg, IDC_RT), &sRect);
-	sRect.right -= sRect.left;
-	sRect.bottom -= sRect.top;
-	const float fAspect = (float)sRect.right / (float)sRect.bottom;
-
-	p_mOut = aiMatrix4x4(
-		s / fAspect, 0.0f, 0.0f, 0.0f,
-		0.0f, s, 0.0f, 0.0f,
-		0.0f, 0.0f, Q, 1.0f,
-		0.0f, 0.0f, -Q * fNearPlane, 0.0f);
-	return 1;
 }
 
 aiVector3D ModelImpl::GetCameraMatrix(aiMatrix4x4& p_mOut)
 {
-	//p_mOut = mView;
-	//return g_sCamera.vPos;
-
-	//////////////////////////////////////////////////////////
-
 	D3DXMATRIX view;
 	D3DXMatrixIdentity(&view);
 

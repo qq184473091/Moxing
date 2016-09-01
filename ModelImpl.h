@@ -26,8 +26,9 @@ class ModelImpl
 	aiVector3D m_aabb[2];
 	float m_radius;
 
-	//solution 1
 	aiMatrix4x4 g_mWorld;
+	//solution 1
+	aiMatrix4x4 g_mWorldRotate;
 	aiMatrix4x4 mView;
 	aiMatrix4x4 mProjection;
 	//TODO: can be removed
@@ -45,7 +46,8 @@ public:
 	bool Load(const char* path);
 	bool PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect);
 	//void GetAABB();
-	float GetRadius() { return m_radius; }
+	float GetModelWorldRadius() { return m_radius; }
+	bool GetModelWorldMatrix(D3DXMATRIX* pOut);
 	bool Unload(void);
 
 	ID3DXEffect* CreateDefaultEffect(IDirect3DDevice9* pd3dDevice);

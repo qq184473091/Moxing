@@ -456,13 +456,15 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
     {
         // Get the projection & view matrix from the camera class
-        mWorld = g_mCenterWorld * *g_Camera.GetWorldMatrix();
-        mProj = *g_Camera.GetProjMatrix();
+		mWorld = *g_Camera.GetWorldMatrix();
+		//TODO: should be
+		//mWorld = g_mCenterWorld * *g_Camera.GetWorldMatrix();
+		mProj = *g_Camera.GetProjMatrix();
         mView = *g_Camera.GetViewMatrix();
 
         mWorldViewProjection = mWorld * mView * mProj;
 
-		g_Model.SetWorldMatrix(&mWorld);
+//		g_Model.SetWorldMatrix(&mWorld);
 		g_Model.SetViewMatrix(&mView);
 		const D3DXVECTOR3 *pViewFrom = g_Camera.GetEyePt();
 		const D3DXVECTOR3 *pViewTo = g_Camera.GetLookAtPt();
@@ -627,7 +629,7 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 					g_pEffect = g_Model.CreateDefaultEffect(pd3dDevice);
 					assert(g_pEffect);
 					g_Model.PostLoad(pd3dDevice, g_pEffect);
-					float fObjectRadius = g_Model.GetRadius();
+					float fObjectRadius = g_Model.GetModelWorldRadius();
 					g_Camera.SetRadius(fObjectRadius * 3.0f, fObjectRadius * 0.5f, fObjectRadius * 10.0f);
 				}
 			}

@@ -24,7 +24,8 @@ public:
 
 	bool Load(const char* path);
 	bool PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect);
-	float GetRadius();
+	float GetModelWorldRadius();
+	bool GetModelWorldMatrix(D3DXMATRIX* pOut);
 	bool Unload(void);
 
 	int RenderFullScene(IDirect3DDevice9* pd3dDevice, ID3DXEffect* g_piDefaultEffect);

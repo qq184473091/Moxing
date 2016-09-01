@@ -56,10 +56,16 @@ bool Model::PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffec
 	return m_pModelImpl->PostLoad(g_piDevice, g_piDefaultEffect);
 }
 
-float Model::GetRadius()
+float Model::GetModelWorldRadius()
 {
-	return m_pModelImpl->GetRadius();
+	return m_pModelImpl->GetModelWorldRadius();
 }
+
+bool Model::GetModelWorldMatrix(D3DXMATRIX* pOut)
+{
+	return m_pModelImpl->GetModelWorldMatrix(pOut);
+}
+
 
 bool Model::Unload(void)
 {
