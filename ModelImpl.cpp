@@ -803,13 +803,9 @@ int ModelImpl::RenderFullScene(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDe
 	g_piDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
 
 	aiMatrix4x4 m;
-#ifndef RELEASE_VERSION
-	m = g_mWorld;
-#else
 	m = g_mWorld * g_mWorldRotate;
 	//TODO: should be
 	//m = g_mWorldRotate;
-#endif //RELEASE_VERSION
 	// draw all opaque objects in the scene
 	if (NULL != g_pcAsset && NULL != g_pcAsset->pcScene->mRootNode)
 	{

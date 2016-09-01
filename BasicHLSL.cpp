@@ -464,7 +464,7 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
 
         mWorldViewProjection = mWorld * mView * mProj;
 
-//		g_Model.SetWorldMatrix(&mWorld);
+		g_Model.SetWorldMatrix(&mWorld);
 		g_Model.SetViewMatrix(&mView);
 		const D3DXVECTOR3 *pViewFrom = g_Camera.GetEyePt();
 		const D3DXVECTOR3 *pViewTo = g_Camera.GetLookAtPt();
