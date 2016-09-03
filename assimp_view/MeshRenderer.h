@@ -59,11 +59,15 @@ namespace AssimpView {
 	public:
 
 		// default constructor
-        CMeshRenderer(RenderOptions& sOptions, Camera& sCamera, AssetHelper *pcAsset)
+        CMeshRenderer(RenderOptions& sOptions, Camera& sCamera, AssetHelper *pcAsset = NULL)
 			: g_sOptions(sOptions), g_sCamera(sCamera), g_pcAsset(pcAsset)
         {
             // no other members to initialize
         }
+		void SetAsset(AssetHelper *pcAsset)
+		{
+			g_pcAsset = pcAsset;
+		}
 
         //------------------------------------------------------------------
         // Draw a mesh in the global mesh list using the current pipeline state

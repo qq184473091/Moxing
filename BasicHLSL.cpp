@@ -738,6 +738,7 @@ void LoadModel(const char* szFileName)
 	//if (strlen(szFileName))
 	if (PathFileExistsA(szFileName))
 	{
+		g_Model.Unload();
 		bool bOK = g_Model.Load(szFileName);
 		assert(bOK);
 		if (bOK)

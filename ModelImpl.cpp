@@ -380,8 +380,10 @@ bool ModelImpl::PostLoad(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultE
 		m_pMaterialMgr = new AssimpView::CMaterialManager(g_sOptions, g_sCamera, g_pcAsset);
 	else
 		m_pMaterialMgr->Reset();
-	if(!m_pMeshRender)
+	if (!m_pMeshRender)
 		m_pMeshRender = new AssimpView::CMeshRenderer(g_sOptions, g_sCamera, g_pcAsset);
+	else
+		m_pMeshRender->SetAsset(g_pcAsset);
 
 	// build native D3D vertex/index buffers, textures, materials
 	if (1 != CreateAssetData(g_piDevice, g_piDefaultEffect))
@@ -771,6 +773,7 @@ bool ModelImpl::Unload(void)
 
 	delete m_pMaterialMgr;
 	m_pMaterialMgr = NULL;
+	m_pMeshRender->SetAsset(NULL);
 
 	// release global shaders that have been allocazed
 	if (NULL != gDefaultVertexDecl)
