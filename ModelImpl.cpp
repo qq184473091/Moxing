@@ -739,6 +739,16 @@ bool ModelImpl::GetModelWorldMatrix(D3DXMATRIX* pOut)
 	return true;
 }
 
+
+void ModelImpl::OnResetDevice(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect)
+{
+	CreateAssetData(g_piDevice, g_piDefaultEffect);
+}
+void ModelImpl::OnLostDevice()
+{
+	DeleteAssetData();
+}
+
 //-------------------------------------------------------------------------------
 // Delete the loaded asset
 // The function does nothing is no asset is loaded

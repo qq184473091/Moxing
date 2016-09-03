@@ -407,7 +407,15 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     g_Camera.SetWindow( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height );
     g_Camera.SetButtonMasks( MOUSE_LEFT_BUTTON, MOUSE_WHEEL, MOUSE_MIDDLE_BUTTON );
 
-	LoadModel(g_szFileName);
+	//LoadModel(g_szFileName);
+	//SAFE_RELEASE(g_pEffect);
+	//g_pEffect = g_Model.CreateDefaultEffect(pd3dDevice);
+	if (g_pEffect)
+	{
+		g_pEffect->OnResetDevice();
+		assert(g_pEffect);
+		g_Model.OnResetDevice(pd3dDevice, g_pEffect);
+	}
 
     g_HUD.SetLocation( pBackBufferSurfaceDesc->Width - 170, 0 );
     g_HUD.SetSize( 170, 170 );
@@ -704,7 +712,7 @@ void CALLBACK OnLostDevice( void* pUserContext )
         g_pEffect->OnLostDevice();
     SAFE_RELEASE( g_pSprite );
 
-	g_Model.Unload();
+	g_Model.OnLostDevice();
 }
 
 

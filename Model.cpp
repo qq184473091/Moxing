@@ -66,6 +66,16 @@ bool Model::GetModelWorldMatrix(D3DXMATRIX* pOut)
 	return m_pModelImpl->GetModelWorldMatrix(pOut);
 }
 
+void Model::OnResetDevice(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect)
+{
+	m_pModelImpl->OnResetDevice(g_piDevice, g_piDefaultEffect);
+}
+
+void Model::OnLostDevice()
+{
+	m_pModelImpl->OnLostDevice();
+}
+
 
 bool Model::Unload(void)
 {
