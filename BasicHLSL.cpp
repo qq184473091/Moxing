@@ -13,6 +13,8 @@
 #include "SDKmisc.h"
 #include "resource.h"
 #include "Model.h"
+#include "Shlwapi.h"
+#pragma comment(lib, "Shlwapi.lib")
 
 //#define DEBUG_VS   // Uncomment this line to debug vertex shaders 
 //#define DEBUG_PS   // Uncomment this line to debug pixel shaders 
@@ -41,7 +43,11 @@ int                         g_nActiveLight;
 
 D3DCAPS9 g_sCaps;
 
+CHAR g_szFileName[MAX_PATH];
+
 RenderEngine::Model g_Model;
+
+void LoadModel(const char* szFileName);
 
 //--------------------------------------------------------------------------------------
 // UI control IDs
@@ -397,9 +403,11 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
 
     // Setup the camera's projection parameters
     float fAspectRatio = pBackBufferSurfaceDesc->Width / ( FLOAT )pBackBufferSurfaceDesc->Height;
-    g_Camera.SetProjParams( D3DX_PI / 4, fAspectRatio, 2.0f, 4000.0f );
+    g_Camera.SetProjParams( D3DX_PI / 4, fAspectRatio, 0.01f, 4000.0f );
     g_Camera.SetWindow( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height );
     g_Camera.SetButtonMasks( MOUSE_LEFT_BUTTON, MOUSE_WHEEL, MOUSE_MIDDLE_BUTTON );
+
+	LoadModel(g_szFileName);
 
     g_HUD.SetLocation( pBackBufferSurfaceDesc->Width - 170, 0 );
     g_HUD.SetSize( 170, 170 );
@@ -607,7 +615,8 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 		case IDC_OPENBUTTON:
 		{
 			OPENFILENAMEA ofn;
-			CHAR szFileName[MAX_PATH];
+			//CHAR szFileName[MAX_PATH];
+			CHAR* szFileName = g_szFileName;
 			szFileName[0] = '\0';
 			ZeroMemory(&ofn, sizeof(ofn));
 			ofn.lStructSize = sizeof(ofn);
@@ -620,18 +629,7 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 
 			if(GetOpenFileNameA(&ofn))
 			{
-				bool bOK = g_Model.Load(szFileName);
-				assert(bOK);
-				if (bOK)
-				{
-					IDirect3DDevice9* pd3dDevice = DXUTGetD3D9Device();
-					SAFE_RELEASE(g_pEffect);
-					g_pEffect = g_Model.CreateDefaultEffect(pd3dDevice);
-					assert(g_pEffect);
-					g_Model.PostLoad(pd3dDevice, g_pEffect);
-					float fObjectRadius = g_Model.GetModelWorldRadius();
-					g_Camera.SetRadius(fObjectRadius * 2.0f, fObjectRadius * 0.01f, fObjectRadius * 100.0f);
-				}
+				LoadModel(szFileName);
 			}
 		}
 		break;
@@ -706,6 +704,7 @@ void CALLBACK OnLostDevice( void* pUserContext )
         g_pEffect->OnLostDevice();
     SAFE_RELEASE( g_pSprite );
 
+	g_Model.Unload();
 }
 
 
@@ -726,4 +725,22 @@ void CALLBACK OnDestroyDevice( void* pUserContext )
 }
 
 
-
+void LoadModel(const char* szFileName)
+{
+	//if (strlen(szFileName))
+	if (PathFileExistsA(szFileName))
+	{
+		bool bOK = g_Model.Load(szFileName);
+		assert(bOK);
+		if (bOK)
+		{
+			IDirect3DDevice9* pd3dDevice = DXUTGetD3D9Device();
+			SAFE_RELEASE(g_pEffect);
+			g_pEffect = g_Model.CreateDefaultEffect(pd3dDevice);
+			assert(g_pEffect);
+			g_Model.PostLoad(pd3dDevice, g_pEffect);
+			float fObjectRadius = g_Model.GetModelWorldRadius();
+			g_Camera.SetRadius(fObjectRadius * 2.0f, fObjectRadius * 0.01f, fObjectRadius * 100.0f);
+		}
+	}
+}

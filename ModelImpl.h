@@ -63,7 +63,7 @@ public:
 
 private:
 	int CreateAssetData(IDirect3DDevice9* g_piDevice, ID3DXEffect* g_piDefaultEffect);
-	int DeleteAssetData(bool bNoMaterials = true);
+	int DeleteAssetData(bool bNoMaterials = false);
 	int GenerateNormalsAsLineList(IDirect3DDevice9* g_piDevice, AssimpView::AssetHelper::MeshHelper* pcMesh, const aiMesh* pcSource);
 
 	//------------------------------------------------------------------

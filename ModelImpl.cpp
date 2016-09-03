@@ -761,6 +761,15 @@ bool ModelImpl::Unload(void)
 
 	delete m_pMaterialMgr;
 	m_pMaterialMgr = NULL;
+
+	// release global shaders that have been allocazed
+	if (NULL != gDefaultVertexDecl)
+	{
+		gDefaultVertexDecl->Release();
+		gDefaultVertexDecl = NULL;
+	}
+
+
 	return 1;
 }
 
